@@ -5,5 +5,9 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('core_erp.urls')),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) # Раздача картинок
+    path('', include('core_erp.urls')), # Подключаем только наше приложение
+]
+
+# Безопасная раздача картинок товаров во время разработки
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

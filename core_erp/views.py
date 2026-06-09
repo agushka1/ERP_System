@@ -38,11 +38,11 @@ def logout_view(request):
 
 
 def dashboard_view(request):
-    """Главная страница: витрина команды и отправка монет благодарности."""
+    """Главная страница: витрина команды, перевод монет и боковые панели товаров."""
     if not request.user.is_authenticated:
         return redirect('login')
 
-    # Обработка отправки монет из карточки сотрудника
+    # Обработка отправки монет (базовая ACID-логика)
     if request.method == 'POST' and 'action_transfer' in request.POST:
         receiver_id = request.POST.get('receiver_id')
         amount_raw = request.POST.get('amount', '0')
@@ -50,7 +50,6 @@ def dashboard_view(request):
 
         try:
             amount = Decimal(amount_raw)
-            # Вызываем ACID-сервис для безопасного перевода монет
             UserService.transfer_currency(
                 sender_id=request.user.id,
                 receiver_id=int(receiver_id),
@@ -65,11 +64,21 @@ def dashboard_view(request):
 
         return redirect('dashboard')
 
+    # Загружаем список коллег
     colleagues = Employee.objects.exclude(id=request.user.id).order_by('first_name')
+
+    # НОВАЯ ЛОГИКА: Берем последние 4 добавленных товара для боковых панелей
+    latest_products = Product.objects.all().order_by('-id')[:4]
+
+    # Распределяем их: первые два пойдут налево, следующие два — направо
+    left_products = latest_products[:2]
+    right_products = latest_products[2:4]
 
     context = {
         'user': request.user,
         'colleagues': colleagues,
+        'left_products': left_products,  # Передаем левые товары
+        'right_products': right_products,  # Передаем правые товары
     }
     return render(request, 'core_erp/dashboard.html', context)
 

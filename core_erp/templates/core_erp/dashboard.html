@@ -1,68 +1,212 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Панель ERP — Главная</title>
+    <link href="{% static 'style.css' %}" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 0; color: #333; }
-        .navbar { background-color: #1e293b; padding: 0 25px; height: 60px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); position: relative; z-index: 100; }
-        .navbar-brand { color: white; font-size: 20px; font-weight: bold; text-decoration: none; }
-        .dropdown { position: relative; display: inline-block; }
-        .dropdown-toggle { background: none; border: none; color: white; font-size: 15px; font-weight: bold; cursor: pointer; padding: 10px 15px; border-radius: 4px; display: flex; align-items: center; gap: 6px; }
-        .dropdown-toggle:hover { background-color: #334155; }
-        .dropdown-toggle::after { content: ' ▼'; font-size: 10px; color: #94a3b8; }
-        .dropdown-menu { display: none; position: absolute; right: 0; top: 100%; background-color: white; min-width: 200px; box-shadow: 0 8px 16px rgba(0,0,0,0.15); border-radius: 6px; padding: 6px 0; list-style: none; margin: 5px 0 0 0; border: 1px solid #e2e8f0; }
-        .dropdown-menu.show { display: block; }
-        .dropdown-menu a { display: block; padding: 11px 20px; text-decoration: none; color: #334155; font-size: 14px; font-weight: 500; }
-        .dropdown-menu a:hover { background-color: #f1f5f9; color: #007bff; }
-        .dropdown-divider { height: 1px; background-color: #e2e8f0; margin: 6px 0; }
-        .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; box-sizing: border-box; }
-        .section-title { margin-top: 10px; margin-bottom: 20px; color: #444; }
-        .employee-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
-        .employee-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-top: 4px solid #007bff; display: flex; flex-direction: column; justify-content: space-between; }
-        .transfer-form { margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; }
-        .form-row { display: flex; gap: 10px; margin-bottom: 10px; }
-        .form-row input[type="number"] { width: 90px; flex-grow: 1; }
-        input, textarea { padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; box-sizing: border-box; }
-        textarea { width: 100%; resize: none; margin-bottom: 10px; }
-        .btn-send { background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold; width: 100%; }
-        .btn-send:hover { background: #0056b3; }
-        .alert { padding: 12px; border-radius: 4px; margin-bottom: 20px; font-size: 14px; font-weight: bold; }
-        .alert-error { background: #f8d7da; color: #721c24; }
-        .alert-success { background: #d4edda; color: #155724; }
+        body { background-color: #090d16; color: #f8fafc; margin: 0; padding: 0; }
+
+        /* ИДЕАЛЬНЫЙ ТРЕХКОЛОННЫЙ МАКЕТ С НУЛЕВЫМ ВЫРАВНИВАНИЕМ */
+        .main-dashboard-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            padding: 24px 16px;
+            box-sizing: border-box;
+        }
+
+        @media (min-width: 992px) {
+            .main-dashboard-layout {
+                flex-direction: row;
+                align-items: flex-start; /* Прижимает верх всех трех колонок в ноль */
+                padding: 40px 24px;
+            }
+            .side-column {
+                width: 17% !important; /* УМЕНЬШИЛИ: Сделали боковые колонки компактнее */
+                flex-shrink: 0;
+            }
+            .center-column {
+                width: 66% !important; /* УВЕЛИЧИЛИ: Центр получил больше свободного места */
+                flex-grow: 1;
+                padding: 0 25px;
+                box-sizing: border-box;
+            }
+        }
+
+        /* ЕДИНЫЙ СТИЛЬ СЕРЫХ РАЗДЕЛИТЕЛЬНЫХ ЛИНИЙ ДЛЯ ВСЕХ ТРЕХ КОЛОНОК */
+        .column-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 20px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #1e293b;
+            line-height: 1.5;
+            height: 32px;
+            box-sizing: border-box;
+        }
+
+        /* ЖЕСТКИЙ ОТРЫВНОЙ СДВИГ: Силой прижимает карточки к серой линии */
+        .grid-zero-gap {
+            margin-top: -24px !important;
+            padding-top: 0 !important;
+        }
+
+        /* Стили карточек сотрудников */
+        .bg-custom-card { background: linear-gradient(145deg, #111827 0%, #1f2937 100%); border: 1px solid #374151; transition: all 0.2s; }
+        .bg-custom-card:hover { border-color: #8b5cf6; box-shadow: 0 10px 30px rgba(139, 92, 246, 0.2); }
+
+        /* Стили для боковых карточек товаров */
+        .bg-shop-card { background: #111827; border: 1px solid #1e293b; border-radius: 14px; overflow: hidden; transition: all 0.2s; margin-bottom: 20px; padding: 12px !important; }
+        .bg-shop-card:hover { border-color: #8b5cf6; box-shadow: 0 8px 25px rgba(139, 92, 246, 0.15); }
+
+        .shop-card-img-box { width: 100%; height: 180px; background-color: #0b0f19; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+        .shop-card-img { width: 100%; height: 100%; object-fit: contain; padding: 8px; }
+
+        /* Кнопки заглянуть в магазин */
+        .btn-shop-action {
+            display: block;
+            width: 100%;
+            text-align: center;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 11px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            margin-top: 12px;
+            border: none;
+        }
+
+        .btn-left {
+            background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+        }
+        .btn-left:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-right {
+            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(168, 85, 247, 0.2);
+        }
+        .btn-right:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(168, 85, 247, 0.4);
+        }
     </style>
 </head>
 <body>
 
-<!-- Подключаем наш изолированный навбар -->
 {% include "core_erp/navbar.html" %}
 
-<div class="container">
+<div class="main-dashboard-layout">
 
-    <h3 class="section-title">Наша команда (Кому хотите отправить благодарность?)</h3>
-    <div class="employee-grid">
-        {% for colleague in colleagues %}
-            <div class="employee-card">
-                <div>
-                    <h4>{{ colleague.first_name }}</h4>
-                    <small>@{{ colleague.username }}</small>
+    <!-- 1. ЛЕВАЯ КОЛОНКА: Новинки магазина -->
+    <div class="side-column">
+        <div class="column-title text-info">🔥 Новинки магазина</div>
+        {% for prod in left_products %}
+            <div class="bg-shop-card text-white">
+                <div class="shop-card-img-box rounded-3 mb-3">
+                    {% if prod.image %}
+                        <img src="{{ prod.image.url }}" alt="{{ prod.name }}" class="shop-card-img">
+                    {% else %}
+                        <span class="text-secondary" style="font-size: 12px;">Нет фото</span>
+                    {% endif %}
                 </div>
-                <form method="post" class="transfer-form">
-                    {% csrf_token %}
-                    <input type="hidden" name="action_transfer" value="1">
-                    <input type="hidden" name="receiver_id" value="{{ colleague.id }}">
-                    <div class="form-row">
-                        <span style="font-size: 13px; align-self: center; color: #666;">Сумма:</span>
-                        <input type="number" name="amount" min="0.01" step="0.01" placeholder="0.00" required>
+                <div class="px-1">
+                    <h6 class="fw-bold mb-1 text-truncate" style="font-size: 15px; color: #fff;">{{ prod.name }}</h6>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-info fw-bold" style="font-size: 14px;">{{ prod.price }} 🪙</span>
+                        <span class="text-secondary" style="font-size: 11px;">Ост: {{ prod.stock }} шт.</span>
                     </div>
-                    <textarea name="comment" rows="2" placeholder="За что монеты..." required></textarea>
-                    <button type="submit" class="btn-send">Отправить монеты</button>
-                </form>
+                    <a href="{% url 'shop' %}" class="btn-shop-action btn-left">Заглянуть в магазин</a>
+                </div>
             </div>
         {% empty %}
-            <p>В компании пока нет других сотрудников.</p>
+            <p class="text-secondary small text-center">Товаров нет</p>
         {% endfor %}
     </div>
+
+    <!-- 2. ЦЕНТРАЛЬНАЯ КОЛОНКА: Сетка команды -->
+    <div class="center-column">
+        <div class="column-title text-white">👥 Команда RespectSys</div>
+
+        <div class="row row-cols-1 row-cols-md-2 row-cols-xxl-3 g-3 grid-zero-gap">
+            {% for colleague in colleagues %}
+                <div class="col">
+                    <div class="card h-100 bg-custom-card text-white rounded-4 p-2">
+                        <div class="card-body d-flex flex-column justify-content-between">
+
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h5 class="card-title fw-bold text-white mb-1" style="font-size: 17px;">{{ colleague.first_name }}</h5>
+                                    <span class="badge bg-dark border border-secondary text-primary font-monospace" style="font-size: 11px;">@{{ colleague.username }}</span>
+                                </div>
+                                <span class="p-2 border border-light rounded-circle shadow-sm" style="background-color: #a855f7; box-shadow: 0 0 10px #a855f7 !important;"></span>
+                            </div>
+
+                            <form method="post" class="mt-2">
+                                {% csrf_token %}
+                                <input type="hidden" name="action_transfer" value="1">
+                                <input type="hidden" name="receiver_id" value="{{ colleague.id }}">
+
+                                <div class="mb-2">
+                                    <textarea name="comment" class="form-control" rows="2" placeholder="За что говорим спасибо?" required style="font-size: 12px;"></textarea>
+                                </div>
+
+                                <div class="input-group">
+                                    <input type="number" name="amount" class="form-control fw-bold" min="0.01" step="0.01" placeholder="0.00" required style="font-size: 13px;">
+                                    <span class="input-group-text">🪙</span>
+                                    <button type="submit" class="btn btn-primary fw-bold text-sm px-3" style="font-size: 13px;">
+                                        Отправить
+                                    </button>
+                                </div>
+                            </form>
+
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12 text-center text-secondary py-5">
+                    <p class="fs-5">В компании пока нет других сотрудников.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 3. ПРАВАЯ КОЛОНКА: Популярный мерч -->
+    <div class="side-column">
+        <div class="column-title text-warning">⭐ Популярный мерч</div>
+        {% for prod in right_products %}
+            <div class="bg-shop-card text-white">
+                <div class="shop-card-img-box rounded-3 mb-3">
+                    {% if prod.image %}
+                        <img src="{{ prod.image.url }}" alt="{{ prod.name }}" class="shop-card-img">
+                    {% else %}
+                        <span class="text-secondary" style="font-size: 12px;">Нет фото</span>
+                    {% endif %}
+                </div>
+                <div class="px-1">
+                    <h6 class="fw-bold mb-1 text-truncate" style="font-size: 15px; color: #fff;">{{ prod.name }}</h6>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-warning fw-bold" style="font-size: 14px;">{{ prod.price }} 🪙</span>
+                        <span class="text-secondary" style="font-size: 11px;">Ост: {{ prod.stock }} шт.</span>
+                    </div>
+                    <a href="{% url 'shop' %}" class="btn-shop-action btn-right">Заглянуть в магазин</a>
+                </div>
+            </div>
+        {% empty %}
+            <p class="text-secondary small text-center">Товаров нет</p>
+        {% endfor %}
+    </div>
+
 </div>
 
 </body>
