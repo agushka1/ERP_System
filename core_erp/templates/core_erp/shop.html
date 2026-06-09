@@ -1,90 +1,85 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Магазин мерча — RespectSys ERP</title>
+    <link href="{% static 'style.css' %}" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 0; color: #333; }
-        .navbar { background-color: #1e293b; padding: 0 25px; height: 60px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); position: relative; z-index: 100; }
-        .navbar-brand { color: white; font-size: 20px; font-weight: bold; text-decoration: none; }
-        .dropdown { position: relative; display: inline-block; }
-        .dropdown-toggle { background: none; border: none; color: white; font-size: 15px; font-weight: bold; cursor: pointer; padding: 10px 15px; border-radius: 4px; display: flex; align-items: center; gap: 6px; }
-        .dropdown-toggle::after { content: ' ▼'; font-size: 10px; color: #94a3b8; }
-        .dropdown-menu { display: none; position: absolute; right: 0; top: 100%; background-color: white; min-width: 200px; box-shadow: 0 8px 16px rgba(0,0,0,0.15); border-radius: 6px; padding: 6px 0; list-style: none; margin: 5px 0 0 0; border: 1px solid #e2e8f0; }
-        .dropdown-menu.show { display: block; }
-        .dropdown-menu a { display: block; padding: 11px 20px; text-decoration: none; color: #334155; font-size: 14px; font-weight: 500; }
-        .dropdown-menu a:hover { background-color: #f1f5f9; color: #007bff; }
-        .dropdown-divider { height: 1px; background-color: #e2e8f0; margin: 6px 0; }
-        .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; box-sizing: border-box; }
-        .section-title { margin-top: 10px; margin-bottom: 20px; color: #444; }
-        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 25px; }
-        .product-card { background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid #e2e8f0; }
-        .product-img-box { width: 100%; height: 200px; background-color: #f1f5f9; display: flex; justify-content: center; align-items: center; overflow: hidden; }
-        .product-img { width: 100%; height: 100%; object-fit: cover; }
-        .product-no-img { color: #94a3b8; font-size: 14px; font-style: italic; }
-        .product-info { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
-        .product-name { margin: 0 0 10px 0; font-size: 18px; color: #1e293b; }
-        .product-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .product-price { font-size: 20px; font-weight: bold; color: #007bff; }
-        .product-stock { font-size: 13px; color: #64748b; }
-        .btn-buy { background: #28a745; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold; width: 100%; transition: background 0.2s; }
-        .btn-buy:hover { background: #218838; }
-        .btn-out { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; }
-        .alert { padding: 12px; border-radius: 4px; margin-bottom: 20px; font-size: 14px; font-weight: bold; }
-        .alert-error { background: #f8d7da; color: #721c24; }
-        .alert-success { background: #d4edda; color: #155724; }
+        body { background-color: #090d16; color: #f8fafc; margin: 0; padding: 0; }
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 24px; box-sizing: border-box; }
+        .section-title { color: #ffffff; font-size: 24px; font-weight: 700; margin-bottom: 24px; border-bottom: 1px solid #1e293b; padding-bottom: 12px; }
+
+        /* Сетка витрины мерча */
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 28px; }
+        .product-card { background: linear-gradient(145deg, #111827 0%, #1f2937 100%); border: 1px solid #374151; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .product-card:hover { transform: translateY(-6px); border-color: #06b6d4; box-shadow: 0 15px 30px rgba(6, 182, 212, 0.2); }
+
+        /* Увеличенные крупные фотки товаров */
+        .product-img-box { width: 100%; height: 240px; background-color: #0b0f19; display: flex; justify-content: center; align-items: center; overflow: hidden; border-bottom: 1px solid #1e293b; }
+        .product-img { width: 100%; height: 100%; object-fit: contain; padding: 12px; }
+        .product-no-img { color: #64748b; font-size: 14px; font-style: italic; }
+
+        .product-info { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .product-name { margin: 0 0 12px 0; font-size: 19px; font-weight: 600; color: #ffffff; }
+        .product-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .product-price { font-size: 22px; font-weight: 700; color: #06b6d4; }
+        .product-stock { font-size: 13px; color: #64748b; font-weight: 500; }
+
+        .btn-buy-action { background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 700; width: 100%; transition: all 0.2s; box-shadow: 0 4px 12px rgba(6, 182, 212, 0.2); }
+        .btn-buy-action:hover { transform: scale(1.02); box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4); }
+        .btn-out { background: #1f2937 !important; color: #4b5563 !important; border: 1px solid #374151 !important; cursor: not-allowed; box-shadow: none !important; }
     </style>
 </head>
 <body>
 
-<!-- Подключаем общий навбар -->
 {% include "core_erp/navbar.html" %}
 
 <div class="container">
-    <div style="background: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 25px; display: inline-block;">
-        Доступно для покупок: <strong style="color: #007bff; font-size: 18px;">{{ user.spendable_balance }} монет</strong>
+    <!-- Плашка доступного кошелька -->
+    <div style="background: #111827; border: 1px solid #374151; padding: 14px 20px; border-radius: 10px; margin-bottom: 30px; display: inline-block; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+        Доступный баланс для покупок: <strong style="color: #06b6d4; font-size: 19px;">{{ user.spendable_balance }} монет</strong>
     </div>
 
-    {% if error %}
-        <div class="alert alert-error">❌ Ошибка: {{ error }}</div>
-    {% endif %}
-    {% if success %}
-        <div class="alert alert-success">✅ Успешно: {{ success }}</div>
-    {% endif %}
+    <h3 class="section-title">🛍️ Магазин корпоративного мерча</h3>
 
-    <h3 class="section-title">Магазин корпоративного мерча</h3>
     <div class="product-grid">
         {% for product in products %}
             <div class="product-card">
+                <!-- Фотка мерча -->
                 <div class="product-img-box">
                     {% if product.image %}
                         <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-img">
                     {% else %}
-                        <span class="product-no-img">Нет изображения</span>
+                        <span class="product-no-img">Изображение отсутствует</span>
                     {% endif %}
                 </div>
+
+                <!-- Детали и добавление -->
                 <div class="product-info">
-                    <h4 class="product-name">{{ product.name }}</h4>
+                    <h4 class="product-name text-truncate">{{ product.name }}</h4>
+
                     <div class="product-meta">
                         <span class="product-price">{{ product.price }} 🪙</span>
-                        <span class="product-stock">В наличии: {{ product.stock }} шт.</span>
+                        <span class="product-stock">На складе: {{ product.stock }} шт.</span>
                     </div>
-                    <form method="post">
+
+                    <form method="post" style="margin: 0;">
                         {% csrf_token %}
-                        <!-- Измените имя действия на action_add_to_cart -->
                         <input type="hidden" name="action_add_to_cart" value="1">
                         <input type="hidden" name="product_id" value="{{ product.id }}">
 
                         {% if product.stock > 0 %}
-                            <button type="submit" class="btn-buy" style="background-color: #007bff;">Добавить в корзину</button>
+                            <button type="submit" class="btn-buy-action">Добавить в корзину</button>
                         {% else %}
-                            <button type="button" class="btn-buy btn-out" disabled>Нет в наличии</button>
+                            <button type="button" class="btn-buy-action btn-out" disabled>Нет в наличии</button>
                         {% endif %}
                     </form>
                 </div>
             </div>
         {% empty %}
-            <p>В магазине пока нет товаров.</p>
+            <p style="color: #64748b; text-align: center; width: 100%; margin-top: 30px;">В магазине пока нет доступных товаров.</p>
         {% endfor %}
     </div>
 </div>

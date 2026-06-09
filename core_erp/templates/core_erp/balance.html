@@ -1,94 +1,100 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Мой баланс — RespectSys ERP</title>
+    <link href="{% static 'style.css' %}" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 0; color: #333; }
-        .navbar { background-color: #1e293b; padding: 0 25px; height: 60px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); position: relative; z-index: 100; }
-        .navbar-brand { color: white; font-size: 20px; font-weight: bold; text-decoration: none; }
-        .dropdown { position: relative; display: inline-block; }
-        .dropdown-toggle { background: none; border: none; color: white; font-size: 15px; font-weight: bold; cursor: pointer; padding: 10px 15px; border-radius: 4px; display: flex; align-items: center; gap: 6px; }
-        .dropdown-toggle:hover { background-color: #334155; }
-        .dropdown-toggle::after { content: ' ▼'; font-size: 10px; color: #94a3b8; }
-        .dropdown-menu { display: none; position: absolute; right: 0; top: 100%; background-color: white; min-width: 200px; box-shadow: 0 8px 16px rgba(0,0,0,0.15); border-radius: 6px; padding: 6px 0; list-style: none; margin: 5px 0 0 0; border: 1px solid #e2e8f0; }
-        .dropdown-menu.show { display: block; }
-        .dropdown-menu a { display: block; padding: 11px 20px; text-decoration: none; color: #334155; font-size: 14px; font-weight: 500; }
-        .dropdown-menu a:hover { background-color: #f1f5f9; color: #007bff; }
-        .dropdown-divider { height: 1px; background-color: #e2e8f0; margin: 6px 0; }
-        .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
-        .card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 25px; }
-        h2 { margin-top: 0; color: #1e293b; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
-        .balance-block { display: flex; justify-content: space-between; margin: 20px 0; gap: 20px; }
-        .balance-box { background: #f8fafc; padding: 20px; border-radius: 6px; border: 1px solid #e2e8f0; flex: 1; text-align: center; }
-        .balance-box h3 { margin: 0 0 10px 0; font-size: 14px; color: #64748b; text-transform: uppercase; }
-        .balance-val { font-size: 32px; font-weight: bold; color: #28a745; }
+        body { background-color: #090d16; color: #f8fafc; margin: 0; padding: 0; }
+        .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; box-sizing: border-box; }
+
+        /* Крупные неоновые карточки счетов */
+        .bg-custom-card { background: linear-gradient(145deg, #111827 0%, #1f2937 100%); border: 1px solid #374151; border-radius: 16px; padding: 30px; box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7); margin-bottom: 30px; }
+        h2 { margin-top: 0; color: #ffffff; font-weight: 700; border-bottom: 1px solid #1e293b; padding-bottom: 12px; font-size: 22px; }
+
+        .balance-block { display: flex; justify-content: space-between; margin-top: 24px; gap: 20px; flex-wrap: wrap; }
+        .balance-box { background: #0b0f19; padding: 24px; border-radius: 12px; border: 1px solid #2d3748; flex: 1; min-width: 250px; text-align: center; transition: border-color 0.2s; }
+        .balance-box:hover { border-color: #3b82f6; }
+        .balance-box h3 { margin: 0 0 10px 0; font-size: 13px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+        .balance-val { font-size: 36px; font-weight: 700; color: #10b981; }
+
+        /* Стилизация темных таблиц логов */
+        .table-responsive { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px; }
-        th { background-color: #f8f9fa; color: #555; border-bottom: 2px solid #ddd; }
-        .badge { padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; display: inline-block; }
-        .badge-in { background: #d4edda; color: #155724; }
-        .badge-out { background: #f8d7da; color: #721c24; }
-        .btn-back { display: inline-block; background: #007bff; color: white; text-decoration: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; margin-top: 20px; }
+        th, td { padding: 14px; text-align: left; border-bottom: 1px solid #1e293b; font-size: 14px; color: #cbd5e1; }
+        th { background-color: #111827; color: #ffffff; font-weight: 600; border-bottom: 2px solid #374151; }
+        tr:hover td { background-color: #1a2232; color: #ffffff; }
+
+        .badge { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; display: inline-block; }
+        .badge-in { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-out { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .btn-back { display: inline-block; background: #1f2937; color: #cbd5e1; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px; margin-top: 20px; border: 1px solid #374151; transition: all 0.2s; }
+        .btn-back:hover { background: #374151; color: #fff; }
     </style>
 </head>
 <body>
 
-<!-- Подключаем общий навбар -->
 {% include "core_erp/navbar.html" %}
 
 <div class="container">
-    <div class="card">
-        <h2>Состояние ваших счетов</h2>
+    <!-- Блок кошельков -->
+    <div class="bg-custom-card">
+        <h2>💰 Состояние ваших счетов</h2>
         <div class="balance-block">
             <div class="balance-box">
                 <h3>Для передачи коллегам</h3>
-                <div class="balance-val">{{ user.transferable_balance }}</div>
-                <small style="color: #94a3b8;">Эту сумму вы можете подарить другим</small>
+                <div class="balance-val">{{ user.transferable_balance }} 🪙</div>
+                <small style="color: #64748b; font-size: 12px; display: block; margin-top: 6px;">Эту сумму вы можете подарить другим сотрудникам</small>
             </div>
+
             <div class="balance-box">
                 <h3>Для личных покупок</h3>
-                <div class="balance-val" style="color: #007bff;">{{ user.spendable_balance }}</div>
-                <small style="color: #94a3b8;">На эти монеты можно купить мерч</small>
+                <div class="balance-val" style="color: #3b82f6;">{{ user.spendable_balance }} 🪙</div>
+                <small style="color: #64748b; font-size: 12px; display: block; margin-top: 6px;">На эти монеты можно заказать мерч в магазине</small>
             </div>
         </div>
     </div>
 
-    <div class="card">
-        <h2>История операций</h2>
-        {% if history %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Тип операции</th>
-                    <th>Направление</th>
-                    <th>Сумма</th>
-                    <th>Комментарий</th>
-                    <th>Дата</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for tx in history %}
-                <tr>
-                    <td><strong>{{ tx.get_transaction_type_display }}</strong></td>
-                    <td>
-                        {% if tx.sender == user %}
-                            <span class="badge badge-out">Отправлено</span> для {{ tx.receiver.first_name }}
-                        {% else %}
-                            <span class="badge badge-in">Получено</span> от {{ tx.sender.first_name|default:"Администрации" }}
-                        {% endif %}
-                    </td>
-                    <td><strong>{{ tx.amount }}</strong> монет.</td>
-                    <td style="color: #555; font-style: italic;">"{{ tx.comment }}"</td>
-                    <td>{{ tx.created_at|date:"d.m.Y H:i" }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-            <p style="color: #999; text-align: center; margin-top: 20px;">Вы еще не совершали никаких операций.</p>
-        {% endif %}
-        <a href="{% url 'dashboard' %}" class="btn-back">← На главную</a>
+    <!-- Блок аудита операций -->
+    <div class="bg-custom-card">
+        <h2>📋 История всех ваших операций</h2>
+        <div class="table-responsive">
+            {% if history %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Тип операции</th>
+                        <th>Направление</th>
+                        <th>Сумма лога</th>
+                        <th>Комментарий / Обоснование</th>
+                        <th>Дата и время</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tx in history %}
+                    <tr>
+                        <td><strong>{{ tx.get_transaction_type_display }}</strong></td>
+                        <td>
+                            {% if tx.sender == user %}
+                                <span class="badge badge-out">Отправлено</span> для {{ tx.receiver.first_name }}
+                            {% else %}
+                                <span class="badge badge-in">Получено</span> от {{ tx.sender.first_name|default:"Администрации" }}
+                            {% endif %}
+                        </td>
+                        <td><strong {% if tx.sender == user %}style="color: #ef4444;"{% else %}style="color: #10b981;"{% endif %}>{{ tx.amount }} 🪙</strong></td>
+                        <td style="color: #94a3b8; font-style: italic;">"{{ tx.comment }}"</td>
+                        <td>{{ tx.created_at|date:"d.m.Y H:i" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+                <p style="color: #64748b; text-align: center; margin-top: 30px;">Вы еще не совершали никаких операций с внутренней валютой.</p>
+            {% endif %}
+        </div>
+        <a href="{% url 'dashboard' %}" class="btn-back">← Вернуться на главную</a>
     </div>
 </div>
 

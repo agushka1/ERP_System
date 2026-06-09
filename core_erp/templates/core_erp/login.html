@@ -1,45 +1,194 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Вход в ERP Систему</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход в систему — RespectSys ERP</title>
+
+    <!-- Подключаем нашу общую дизайн-систему -->
+    <link href="{% static 'style.css' %}" rel="stylesheet">
+
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f6f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .login-card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 320px; }
-        h2 { text-align: center; color: #333; margin-bottom: 20px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; color: #666; font-size: 14px; }
-        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; background: #007bff; border: none; color: white; border-radius: 4px; font-size: 16px; cursor: pointer; }
-        button:hover { background: #0056b3; }
-        .error { color: red; font-size: 14px; text-align: center; margin-bottom: 15px; }
+        /* Главный контейнер с защитой от прокрутки */
+        .login-wrapper {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+            background-color: #05070f; /* Ультра-тёмный космический фон */
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ФОНОВЫЕ НЕОНОВЫЕ СФЕРЫ ДЛЯ ГЛУБИНЫ */
+        .glow-sphere-1 {
+            position: absolute;
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.4) 0%, rgba(59, 130, 246, 0) 70%);
+            top: -50px;
+            left: -50px;
+            filter: blur(40px);
+            pointer-events: none;
+        }
+        .glow-sphere-2 {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.35) 0%, rgba(139, 92, 246, 0) 70%);
+            bottom: -80px;
+            right: -80px;
+            filter: blur(50px);
+            pointer-events: none;
+        }
+
+        /* СТЕКЛЯННАЯ КИБЕР-КАРТОЧКА */
+        .login-card {
+            background: rgba(17, 24, 39, 0.75) !important; /* Полупрозрачный фон */
+            backdrop-filter: blur(12px); /* Размытие заднего плана (матовое стекло) */
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            border-radius: 20px !important; /* Более мягкие скругления */
+            padding: 45px 35px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7) !important;
+            position: relative;
+            z-index: 10;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Плавное неоновое свечение всей карточки при работе с ней */
+        .login-card:focus-within {
+            border-color: rgba(139, 92, 246, 0.4) !important;
+            box-shadow: 0 0 40px rgba(139, 92, 246, 0.15), 0 25px 50px -12px rgba(0, 0, 0, 0.7) !important;
+        }
+
+        .form-group {
+            margin-bottom: 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        /* ИКОНКИ ВНУТРИ ПОЛЕЙ ВВОДА */
+        .input-icon-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-icon-wrapper .form-control {
+            padding-left: 40px !important; /* Сдвигаем текст вправо под иконку */
+            height: 46px;
+            font-size: 14px;
+            background-color: rgba(11, 15, 25, 0.6) !important;
+        }
+
+        .input-badge {
+            position: absolute;
+            left: 14px;
+            color: #475569;
+            font-size: 15px;
+            pointer-events: none;
+            transition: color 0.2s;
+        }
+
+        /* Подсветка иконки при фокусе на поле */
+        .input-icon-wrapper:focus-within .input-badge {
+            color: #8b5cf6;
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%) !important;
+            color: white !important;
+            border: none !important;
+            height: 48px;
+            border-radius: 10px !important;
+            font-weight: 700 !important;
+            font-size: 15px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 14px rgba(139, 92, 246, 0.3);
+        }
+
+        .btn-login:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5);
+        }
+
+        .alert-login-error {
+            background-color: rgba(239, 68, 68, 0.12) !important;
+            border: 1px solid rgba(239, 68, 68, 0.25) !important;
+            color: #f87171 !important;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1);
+        }
     </style>
 </head>
 <body>
 
-<div class="login-card">
-    <h2>Войти в систему</h2>
+<div class="login-wrapper">
+    <!-- Магические светящиеся сферы на бэкграунде -->
+    <div class="glow-sphere-1"></div>
+    <div class="glow-sphere-2"></div>
 
-    {% if error %}
-        <div class="error">{{ error }}</div>
-    {% endif %}
+    <div class="login-card">
 
-    <form method="post">
-        <!-- Защитный токен Django от CSRF атак (обязательно по безопасности) -->
-        {% csrf_token %}
-
-        <div class="form-group">
-            <label for="username">Имя пользователя (Логин):</label>
-            <input type="text" id="username" name="username" placeholder="Например: user_anna" required>
+        <!-- Верхняя текстовая часть -->
+        <div class="text-center mb-4">
+            <h2 class="fw-bold text-white m-0" style="font-size: 28px; letter-spacing: -0.8px; background: linear-gradient(to right, #ffffff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">RespectSys ERP</h2>
+            <p class="text-secondary small mt-2 mb-0" style="color: #64748b !important;">Вход в корпоративный терминал</p>
         </div>
 
-        <div class="form-group">
-            <label for="password">Пароль:</label>
-            <input type="password" id="password" name="password" placeholder="Введите пароль" required>
-        </div>
+        <!-- Вывод ошибок валидации -->
+        {% if error %}
+            <div class="alert-login-error">
+                ⚠️ {{ error }}
+            </div>
+        {% endif %}
 
-        <button type="submit">Войти</button>
-    </form>
+        <!-- Форма -->
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="username">Логин сотрудника:</label>
+                <div class="input-icon-wrapper">
+                    <span class="input-badge">👤</span>
+                    <input type="text" id="username" name="username" class="form-control" placeholder="username" required autocomplete="username">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Пароль доступа:</label>
+                <div class="input-icon-wrapper">
+                    <span class="input-badge">🔒</span>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-login">Открыть терминал →</button>
+        </form>
+
+    </div>
 </div>
 
 </body>

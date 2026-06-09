@@ -2,51 +2,56 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Моя корзина — RespectSys ERP</title>
+    {% load static %}
+    <link href="{% static 'style.css' %}" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 0; color: #333; }
-        .container { max-width: 900px; margin: 40px auto; padding: 0 20px; box-sizing: border-box; }
-        .card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 30px; }
-        h2 { margin-top: 0; color: #1e293b; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
+        body { background-color: #090d16; color: #f8fafc; margin: 0; padding: 0; }
+        .container { max-width: 950px; margin: 40px auto; padding: 0 20px; box-sizing: border-box; }
+
+        .bg-custom-card { background: linear-gradient(145deg, #111827 0%, #1f2937 100%); border: 1px solid #374151; border-radius: 16px; padding: 30px; box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7); margin-bottom: 30px; }
+        h2 { margin-top: 0; color: #ffffff; font-weight: 700; border-bottom: 1px solid #1e293b; padding-bottom: 12px; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px; }
-        th { background-color: #f8f9fa; color: #555; }
+        th, td { padding: 14px; text-align: left; border-bottom: 1px solid #1e293b; font-size: 14px; color: #cbd5e1; }
+        th { background-color: #111827; color: #fff; }
+        tr:hover td { background-color: #1a2232; }
 
-        .cart-total { text-align: right; margin-top: 20px; font-size: 18px; font-weight: bold; }
-        .actions { display: flex; justify-content: space-between; margin-top: 25px; gap: 15px; }
+        .cart-total { text-align: right; margin-top: 24px; font-size: 19px; font-weight: bold; color: #ffffff; }
+        .actions { display: flex; justify-content: space-between; margin-top: 25px; gap: 15px; flex-wrap: wrap; }
 
-        .btn { border: none; padding: 12px 20px; border-radius: 4px; cursor: pointer; font-size: 15px; font-weight: bold; text-decoration: none; text-align: center; }
-        .btn-checkout { background: #28a745; color: white; flex-grow: 2; }
-        .btn-checkout:hover { background: #218838; }
+        .btn-act { border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 700; text-decoration: none; text-align: center; transition: all 0.2s; }
+        .btn-checkout { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; flex-grow: 2; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); }
+        .btn-checkout:hover { transform: scale(1.01); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4); }
         .btn-clear { background: #ea580c; color: white; }
-        .btn-back { background: #cbd5e1; color: #334155; }
+        .btn-clear:hover { background: #c2410c; }
+        .btn-back { background: #1f2937; color: #cbd5e1; border: 1px solid #374151; }
+        .btn-back:hover { background: #374151; color: #fff; }
 
-        /* Стили статус-бэджей для заказов */
-        .status-badge { padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; display: inline-block; }
-        .status-pending { background-color: #fef3c7; color: #d97706; }
-        .status-delivered { background-color: #d1fae5; color: #065f46; }
+        .status-badge { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; display: inline-block; }
+        .status-paid { background-color: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .status-ready { background-color: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .status-delivered { background-color: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
     </style>
 </head>
 <body>
 
-<!-- Подключаем наш общий навбар из бургер-меню -->
 {% include "core_erp/navbar.html" %}
 
 <div class="container">
 
-    <!-- БЛОК 1: ТЕКУЩАЯ КОРЗИНА -->
-    <div class="card">
+    <!-- БЛОК 1: АКТИВНАЯ КОРЗИНА -->
+    <div class="bg-custom-card">
         <h2>🛒 Ваша корзина покупок</h2>
-
         {% if cart_items %}
         <table>
             <thead>
                 <tr>
-                    <th>Товар</th>
+                    <th>Название мерча</th>
                     <th>Цена</th>
-                    <th>Количество</th>
-                    <th>Итого</th>
+                    <th>Выбранное количество</th>
+                    <th>Итоговая сумма</th>
                 </tr>
             </thead>
             <tbody>
@@ -55,52 +60,51 @@
                     <td><strong>{{ item.product.name }}</strong></td>
                     <td>{{ item.product.price }} 🪙</td>
                     <td>{{ item.quantity }} шт.</td>
-                    <td><strong>{{ item.item_total }} 🪙</strong></td>
+                    <td><strong style="color: #06b6d4;">{{ item.item_total }} 🪙</strong></td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
 
         <div class="cart-total">
-            Общая стоимость заказа: <span style="color: #28a745; font-size: 22px;">{{ total_cart_price }} монет</span>
+            Итого к оплате: <span style="color: #10b981; font-size: 24px; font-weight: 700;">{{ total_cart_price }} монет</span>
         </div>
 
         <div class="actions">
-            <a href="{% url 'shop' %}" class="btn btn-back">← Назад в магазин</a>
+            <a href="{% url 'shop' %}" class="btn-act btn-back">← Назад в магазин</a>
 
             <form method="post" style="margin: 0;">
                 {% csrf_token %}
-                <button type="submit" name="action_clear" value="1" class="btn btn-clear">Очистить</button>
+                <button type="submit" name="action_clear" value="1" class="btn-act btn-clear">Очистить</button>
             </form>
 
             <form method="post" style="margin: 0; flex-grow: 1; display: flex;">
                 {% csrf_token %}
-                <button type="submit" name="action_checkout" value="1" class="btn btn-checkout">Оплатить монетами</button>
+                <button type="submit" name="action_checkout" value="1" class="btn-act btn-checkout">Оплатить монетами (Купить)</button>
             </form>
         </div>
-
         {% else %}
-            <p style="color: #999; text-align: center; margin: 20px 0; font-size: 15px;">Ваша корзина пуста. Добавьте в неё что-нибудь в магазине!</p>
+            <p style="color: #64748b; text-align: center; margin: 30px 0; font-size: 15px;">Ваша корзина пуста. Добавьте в неё товары на витрине мерча.</p>
             <div style="text-align: center;">
-                <a href="{% url 'shop' %}" class="btn btn-checkout" style="display: inline-block;">Перейти в магазин мерча</a>
+                <a href="{% url 'shop' %}" class="btn-act btn-checkout" style="display: inline-block;">Перейти в магазин</a>
             </div>
         {% endif %}
     </div>
 
-    <!-- БЛОК 2: ИСТОРИЯ ЛИЧНЫХ ЗАКАЗОВ (ПЕРЕНЕСЕНА СЮДА) -->
-    <div class="card">
-        <h2>🛍️ Мои оплаченные заказы</h2>
-        <p style="font-size: 13px; color: #64748b; margin-top: -5px; margin-bottom: 20px;">После оплаты заказ отправляется на склад. Покажите эту страницу администратору, чтобы забрать вещь.</p>
+    <!-- БЛОК 2: ИСТОРИЯ ОФОРМЛЕННЫХ ЗАКАЗОВ -->
+    <div class="bg-custom-card">
+        <h2>🛍️ Мои оплаченные заказы мерча</h2>
+        <p style="font-size: 13px; color: #64748b; margin-top: -6px; margin-bottom: 20px;">Покажите эту страницу администратору склада, чтобы получить свои вещи в офисе.</p>
 
         {% if my_orders %}
         <table>
             <thead>
                 <tr>
-                    <th>№ Заказа</th>
-                    <th>Название товара</th>
+                    <th>ID заказа</th>
+                    <th>Название вещи</th>
                     <th>Количество</th>
-                    <th>Списано средств</th>
-                    <th>Статус выдачи</th>
+                    <th>Стоимость</th>
+                    <th>Статус на складе</th>
                     <th>Дата и время заказа</th>
                 </tr>
             </thead>
@@ -110,10 +114,12 @@
                     <td><strong>#{{ order.id }}</strong></td>
                     <td><strong>{{ order.product.name }}</strong></td>
                     <td>{{ order.quantity }} шт.</td>
-                    <td><strong>{{ order.total_price }} 🪙</strong></td>
+                    <td><strong style="color: #06b6d4;">{{ order.total_price }} 🪙</strong></td>
                     <td>
-                        {% if order.status == 'PENDING' %}
-                            <span class="status-badge status-pending">{{ order.get_status_display }}</span>
+                        {% if order.status == 'PAID' %}
+                            <span class="status-badge status-paid">{{ order.get_status_display }}</span>
+                        {% elif order.status == 'READY' %}
+                            <span class="status-badge status-ready">{{ order.get_status_display }}</span>
                         {% else %}
                             <span class="status-badge status-delivered">{{ order.get_status_display }}</span>
                         {% endif %}
@@ -124,10 +130,9 @@
             </tbody>
         </table>
         {% else %}
-            <p style="color: #999; text-align: center; margin: 25px 0;">Вы ещё не покупали товары в нашей ERP-системе.</p>
+            <p style="color: #64748b; text-align: center; margin: 25px 0;">Вы ещё не покупали товары в нашей ERP-системе.</p>
         {% endif %}
     </div>
-
 </div>
 
 </body>

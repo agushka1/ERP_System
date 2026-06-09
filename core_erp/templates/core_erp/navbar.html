@@ -1,84 +1,67 @@
-<!-- Загружаем поддержку статических файлов Django -->
-{% load static %}
-
-<!-- Подключаем стили из вашей папки static -->
-<link href="{% static 'style.css' %}" rel="stylesheet">
-
-<!-- СТИЛИ ДЛЯ ИСПРАВЛЕНИЯ ОТСТУПА СТРАНИЦЫ И УДАЛЕНИЯ ТОЧЕК -->
-<!-- СТИЛИ ДЛЯ ИСПРАВЛЕНИЯ ОТСТУПА СТРАНИЦЫ И УДАЛЕНИЯ ТОЧЕК -->
 <style>
-    /* Убираем отступ у самого верха сайта, чтобы навбар прилип к потолку */
-    body {
-        padding-top: 0 !important;
-    }
-    /* Добавляем красивый отступ сверху для контента под навбаром */
-    .container.my-5 {
-        margin-top: 2rem !important;
-    }
-    /* Убираем любые стандартные точки у списков в навбаре */
-    .navbar-nav, .navbar-nav li {
-        list-style-type: none !important;
-        list-style: none !important;
-        margin: 0 !important;
-        padding: 0 !important;
-    }
+    .navbar-custom { background-color: #0f172a; padding: 0 25px; height: 60px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; position: relative; z-index: 1000; font-family: 'Inter', sans-serif; }
+    .navbar-brand-custom { color: white; font-size: 20px; font-weight: bold; text-decoration: none; }
+    .dropdown-custom { position: relative; display: inline-block; }
+    .dropdown-toggle-custom { background: #1e293b; border: 1px solid #334155; color: white; font-size: 14px; font-weight: bold; cursor: pointer; padding: 8px 16px; border-radius: 6px; display: flex; align-items: center; gap: 6px; text-decoration: none; }
+    .dropdown-toggle-custom:hover { border-color: #8b5cf6; }
+    .dropdown-toggle-custom::after { content: ' ▼'; font-size: 10px; color: #94a3b8; }
+
+    .dropdown-menu-custom { display: none; position: absolute; right: 0; top: 110%; background-color: #1e293b; min-width: 220px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); border-radius: 8px; padding: 6px 0; list-style: none; margin: 0; border: 1px solid #334155; z-index: 1001; }
+    .dropdown-menu-custom.show { display: block; }
+    .dropdown-menu-custom a { display: block; padding: 11px 20px; text-decoration: none; color: #cbd5e1; font-size: 14px; font-weight: 500; text-align: left; cursor: pointer; }
+    .dropdown-menu-custom a:hover { background-color: #334155; color: white; }
+    .dropdown-divider-custom { height: 1px; background-color: #334155; margin: 6px 0; }
+
+    /* Красивый плоский заголовок для панели администратора */
+    .admin-header-custom { display: block; padding: 8px 20px 4px 20px; font-size: 11px; font-weight: 700; color: #f59e0b; text-transform: uppercase; letter-spacing: 0.5px; }
 </style>
 
+<nav class="navbar-custom">
+    <a href="{% url 'dashboard' %}" class="navbar-brand-custom">RespectSys ERP</a>
 
-<!-- НАВБАР С ФИКСИРОВАННОЙ ЦЕНТРОВКОЙ И ЧИСТЫМИ СТИЛЯМИ -->
-<nav class="navbar navbar-expand-lg sticky-top px-3" data-bs-theme="dark" style="background-color: #0f172a !important; border-bottom: 1px solid #334155 !important; min-height: 60px;">
-    <div class="container-fluid d-flex align-items-center justify-content-between">
+    <div class="dropdown-custom">
+        <button class="dropdown-toggle-custom" id="profileDropdownBtn">
+            {% if user.first_name %}{{ user.first_name }}{% else %}@{{ user.username }}{% endif %}
+        </button>
+        <ul class="dropdown-menu-custom" id="profileDropdownMenu">
+            <li><a href="{% url 'dashboard' %}">🏠 Главная страница</a></li>
+            <li><a href="{% url 'balance' %}">💰 Мой баланс и история</a></li>
+            <li><a href="{% url 'shop' %}">🛍️ Магазин мерча</a></li>
+            <li><a href="{% url 'cart' %}">🛒 Моя корзина</a></li>
 
-        <!-- Логотип системы -->
-        <a class="navbar-brand fw-bold m-0" href="{% url 'dashboard' %}">RespectSys ERP</a>
+            <!-- ПО ПРИНЦИПУ DRY: Админка теперь разворачивается прямо в общем списке -->
+            {% if user.role == 'ADMIN' %}
+                <div class="dropdown-divider-custom"></div>
+                <li class="admin-header-custom">⚙️ Панель Управления</li>
+                <li><a href="{% url 'admin_add_product' %}">➕ Добавить товар</a></li>
+                <li><a href="{% url 'admin_currency' %}">💸 Начислить средства</a></li>
+                <li><a href="{% url 'admin_orders' %}">📦 Учет магазина</a></li>
+            {% endif %}
 
-        <!-- Контейнер меню (Чистый, без лишних ломающих тегов и полос) -->
-        <div class="d-flex align-items-center justify-content-end">
-            <ul class="navbar-nav list-unstyled m-0 p-0">
-                <li class="nav-item dropdown">
-                    <a class="dropdown-toggle text-white fw-bold btn btn-outline-secondary btn-sm px-3 d-inline-flex align-items-center text-decoration-none" href="#" id="profileMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        {% if user.first_name %}{{ user.first_name }}{% else %}@{{ user.username }}{% endif %}
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark bg-dark border-secondary shadow mt-2" aria-labelledby="profileMenu">
-                        <li><a class="dropdown-item" href="{% url 'dashboard' %}">🏠 Главная страница</a></li>
-                        <li><a class="dropdown-item" href="{% url 'balance' %}">💰 Мой баланс и история</a></li>
-                        <li><a class="dropdown-item" href="{% url 'shop' %}">🛍️ Магазин мерча</a></li>
-                        <li><a class="dropdown-item" href="{% url 'cart' %}">🛒 Моя корзина</a></li>
-
-                        <!-- Раздел Администратора -->
-                        {% if user.role == 'ADMIN' %}
-                            <li><hr class="dropdown-divider border-secondary"></li>
-                            <li class="dropdown-header text-warning fw-bold">⚙️ Панель Управления</li>
-                            <li><a class="dropdown-item text-info" href="{% url 'admin_add_product' %}">➕ Добавить товар</a></li>
-                            <li><a class="dropdown-item text-info" href="{% url 'admin_currency' %}">💸 Начислить средства</a></li>
-                            <li><a class="dropdown-item text-info" href="{% url 'admin_orders' %}">📦 Учет магазина</a></li>
-                        {% endif %}
-
-                        <li><hr class="dropdown-divider border-secondary"></li>
-                        <li><a class="dropdown-item text-danger fw-bold" href="{% url 'logout' %}">🚪 Выйти</a></li>
-                    </ul>
-                </li>
-            </ul>
-        </div>
-
+            <div class="dropdown-divider-custom"></div>
+            <li><a href="{% url 'logout' %}" style="color: #ef4444; font-weight: bold;">🚪 Выйти из системы</a></li>
+        </ul>
     </div>
 </nav>
 
-<!-- ВСПЛЫВАЮЩИЕ УВЕДОМЛЕНИЯ (TOASTS) -->
 {% if messages %}
-    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 2050; margin-top: 60px;">
+    <div id="notification-container" style="position: fixed; top: 75px; right: 25px; z-index: 2000; display: flex; flex-direction: column; gap: 10px; font-family: sans-serif;">
         {% for message in messages %}
-            <div class="toast show align-items-center text-white {% if message.tags == 'error' %}bg-danger{% else %}bg-success{% endif %} border-0 shadow-lg" role="alert">
-                <div class="d-flex">
-                    <div class="toast-body fw-bold">
-                        🔔 {{ message }}
-                    </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close" onclick="this.parentElement.parentElement.remove()"></button>
-                </div>
+            <div style="background: {% if message.tags == 'error' %}#ef4444{% else %}#22c55e{% endif %}; color: white; padding: 15px 25px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); font-size: 14px; font-weight: bold; display: flex; align-items: center; justify-content: space-between; gap: 15px;">
+                <span>🔔 {{ message }}</span>
+                <button onclick="this.parentElement.remove()" style="background: none; border: none; color: white; font-weight: bold; cursor: pointer; font-size: 20px; padding: 0; line-height: 1;">&times;</button>
             </div>
         {% endfor %}
     </div>
 {% endif %}
 
-<!-- Подключаем скрипты из вашей папки static в самом низу -->
-<script src="{% static 'scripts.js' %}"></script>
+<script>
+    (function() {
+        const btn = document.getElementById('profileDropdownBtn');
+        const menu = document.getElementById('profileDropdownMenu');
+        if (btn && menu) {
+            btn.addEventListener('click', function(e) { e.stopPropagation(); menu.classList.toggle('show'); });
+            document.addEventListener('click', function() { menu.classList.remove('show'); });
+        }
+    })();
+</script>

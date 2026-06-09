@@ -128,13 +128,13 @@ class ShopService:
     @staticmethod
     @transaction.atomic
     def checkout_cart(employee_id: int, cart_data: dict):
-        """Оформление всей корзины целиком внутри одной ACID-транзакции с созданием Заказов."""
-        # Подключаем модель Order локально или сверху файла, если забыли
+        """Оформление всей корзины целиком внутри одной ACID-транзакции."""
         from .models import Order
 
         if not cart_data:
             raise ValidationError("Ваша корзина пуста.")
 
+        # Блокируем сотрудника для безопасного изменения баланса (ACID)
         employee = Employee.objects.select_for_update().get(id=employee_id)
 
         total_price = Decimal('0.00')
@@ -142,6 +142,7 @@ class ShopService:
         histories_to_create = []
         orders_to_create = []
 
+        # Получаем и блокируем все товары из корзины за один запрос
         product_ids = [int(pid) for pid in cart_data.keys()]
         products = {p.id: p for p in Product.objects.select_for_update().filter(id__in=product_ids)}
 
@@ -156,11 +157,11 @@ class ShopService:
             item_cost = product.price * quantity
             total_price += item_cost
 
-            # Уменьшаем остаток на складе товара
+            # Уменьшаем остаток на складе
             product.stock -= quantity
             products_to_update.append(product)
 
-            # 1. Готовим запись для финансового аудита валюты
+            # Готовим запись для финансового аудита валюты
             histories_to_create.append(
                 TransactionHistory(
                     transaction_type=TransactionHistory.Type.PURCHASE,
@@ -171,29 +172,29 @@ class ShopService:
                 )
             )
 
-            # 2. Готовим реальный заказ для склада со статусом PENDING (Ожидает выдачи)
+            # Готовим реальный заказ для склада со статусом PAID
             orders_to_create.append(
                 Order(
                     employee=employee,
                     product=product,
                     quantity=quantity,
                     total_price=item_cost,
-                    status=Order.Status.PENDING
+                    status=Order.Status.PAID  # ИСПРАВЛЕНО: Теперь статус встает без ошибок!
                 )
             )
 
+        # Проверяем финальный баланс
         if employee.spendable_balance < total_price:
             raise ValidationError(
                 f"Недостаточно средств. Стоимость корзины: {total_price} 🪙, у вас: {employee.spendable_balance} 🪙")
 
-        # Применяем финансовые списания
+        # Проводим все изменения разом (ACID)
         employee.spendable_balance -= total_price
         employee.save()
 
-        # Обновляем остатки на складе
         for prod in products_to_update:
             prod.save()
 
-        # Массово и безопасно сохраняем финансовые логи и складские заказы (ACID)
+        # Массовое сохранение истории и заказов в базу данных
         TransactionHistory.objects.bulk_create(histories_to_create)
         Order.objects.bulk_create(orders_to_create)

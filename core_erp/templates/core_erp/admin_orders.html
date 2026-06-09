@@ -1,79 +1,104 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8"><title>Учет магазина — ERP</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Учет магазина — RespectSys ERP</title>
+    {% load static %}
+    <link href="{% static 'style.css' %}" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 0; }
-        .container { max-width: 1100px; margin: 40px auto; padding: 0 20px; box-sizing: border-box; }
-        .card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        h2 { margin-top: 0; color: #1e293b; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
+        body { background-color: #090d16; color: #f8fafc; margin: 0; padding: 0; }
+        .container { max-width: 1150px; margin: 40px auto; padding: 0 20px; box-sizing: border-box; }
+
+        .bg-custom-card { background: linear-gradient(145deg, #111827 0%, #1f2937 100%); border: 1px solid #374151; border-radius: 16px; padding: 25px; box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7); }
+        h2 { margin-top: 0; color: #ffffff; font-weight: 700; border-bottom: 1px solid #1e293b; padding-bottom: 12px; font-size: 22px; }
+
+        .table-responsive { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px; }
-        th { background-color: #f8f9fa; color: #475569; }
+        th, td { padding: 14px; text-align: left; border-bottom: 1px solid #1e293b; font-size: 14px; color: #cbd5e1; vertical-align: middle; }
+        th { background-color: #111827; color: #ffffff; font-weight: 600; border-bottom: 2px solid #374151; }
+        tr:hover td { background-color: #1a2232; }
 
-        select { padding: 5px 10px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px; background: white; }
-        .btn-status { background-color: #0284c7; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 12px; }
-        .btn-status:hover { background-color: #0369a1; }
+        select { padding: 6px 10px; background: #0b0f19 !important; border: 1px solid #374151 !important; color: #fff !important; border-radius: 6px; font-size: 13px; }
+        .btn-status-update { background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); color: white; border: none; padding: 7px 14px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+        .btn-status-update:hover { transform: translateY(-1px); opacity: 0.95; }
 
-        /* Цвета для разных этапов заказа */
-        .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
-        .status-paid { background-color: #e0f2fe; color: #0369a1; }
-        .status-ready { background-color: #fef3c7; color: #d97706; }
-        .status-delivered { background-color: #d1fae5; color: #065f46; }
+        .status-badge { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; display: inline-block; }
+        .status-paid { background-color: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .status-ready { background-color: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .status-delivered { background-color: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
     </style>
 </head>
 <body>
-    {% include "core_erp/navbar.html" %}
-    <div class="container"><div class="card">
-        <h2>📦 Учет магазина: Отслеживание и выдача мерча</h2>
-        <p>Здесь вы можете контролировать все покупки сотрудников, менять этапы сборки и подтверждать выдачу товаров.</p>
 
-        {% if all_orders %}
-        <table>
-            <thead><tr><th>ID</th><th>Сотрудник</th><th>Товар</th><th>Кол-во</th><th>Стоимость</th><th>Текущий статус</th><th>Дата</th><th>Управление статусом</th></tr></thead>
-            <tbody>
-                {% for order in all_orders %}
-                <tr>
-                    <td><strong>#{{ order.id }}</strong></td>
-                    <td>{{ order.employee.first_name }}</td>
-                    <td><strong>{{ order.product.name }}</strong></td>
-                    <td>{{ order.quantity }} шт.</td>
-                    <td><strong>{{ order.total_price }} 🪙</strong></td>
-                    <td>
-                        {% if order.status == 'PAID' %}
-                            <span class="status-badge status-paid">{{ order.get_status_display }}</span>
-                        {% elif order.status == 'READY' %}
-                            <span class="status-badge status-ready">{{ order.get_status_display }}</span>
-                        {% else %}
-                            <span class="status-badge status-delivered">{{ order.get_status_display }}</span>
-                        {% endif %}
-                    </td>
-                    <td>{{ order.created_at|date:"d.m.Y H:i" }}</td>
-                    <td>
-                        {% if order.status != 'DELIVERED' %}
-                            <form method="post" style="margin: 0; display: flex; gap: 5px;">
-                                {% csrf_token %}
-                                <input type="hidden" name="action_change_status" value="1">
-                                <input type="hidden" name="order_id" value="{{ order.id }}">
+{% include "core_erp/navbar.html" %}
 
-                                <select name="new_status">
-                                    <option value="PAID" {% if order.status == 'PAID' %}selected{% endif %}>Оплачен</option>
-                                    <option value="READY" {% if order.status == 'READY' %}selected{% endif %}>Ожидает получения</option>
-                                    <option value="DELIVERED">Выдан сотруднику ✔</option>
-                                </select>
-                                <button type="submit" class="btn-status">Обновить</button>
-                            </form>
-                        {% else %}
-                            <span style="color: #64748b; font-size: 13px; font-style: italic;">Заказ закрыт 📦</span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-            <p style="color: #999; text-align: center;">Заказов в магазине пока не зарегистрировано.</p>
-        {% endif %}
-    </div></div>
+<div class="container">
+    <div class="bg-custom-card">
+        <h2>📦 Учет магазина: Контроль и обработка заказов</h2>
+        <p style="font-size: 13px; color: #64748b; margin-top: -6px; margin-bottom: 20px;">Складской терминал: ведите пошаговый подсчет этапов сборки мерча и подтверждайте выдачу вещей сотрудникам.</p>
+
+        <div class="table-responsive">
+            {% if all_orders %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Сотрудник</th>
+                        <th>Купленный мерч</th>
+                        <th>Кол-во</th>
+                        <th>Стоимость</th>
+                        <th>Текущий статус</th>
+                        <th>Дата покупки</th>
+                        <th>Управление статусом</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in all_orders %}
+                    <tr>
+                        <td><strong>#{{ order.id }}</strong></td>
+                        <td><strong style="color: #fff;">{{ order.employee.first_name }}</strong><br><small style="color: #64748b;">@{{ order.employee.username }}</small></td>
+                        <td><strong style="color: #06b6d4;">{{ order.product.name }}</strong></td>
+                        <td>{{ order.quantity }} шт.</td>
+                        <td><strong>{{ order.total_price }} 🪙</strong></td>
+                        <td>
+                            {% if order.status == 'PAID' %}
+                                <span class="status-badge status-paid">{{ order.get_status_display }}</span>
+                            {% elif order.status == 'READY' %}
+                                <span class="status-badge status-ready">{{ order.get_status_display }}</span>
+                            {% else %}
+                                <span class="status-badge status-delivered">{{ order.get_status_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ order.created_at|date:"d.m.Y H:i" }}</td>
+                        <td>
+                            {% if order.status != 'DELIVERED' %}
+                                <form method="post" style="margin: 0; display: flex; gap: 6px;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action_change_status" value="1">
+                                    <input type="hidden" name="order_id" value="{{ order.id }}">
+
+                                    <select name="new_status">
+                                        <option value="PAID" {% if order.status == 'PAID' %}selected{% endif %}>Оплачен</option>
+                                        <option value="READY" {% if order.status == 'READY' %}selected{% endif %}>Ожидает получения</option>
+                                        <option value="DELIVERED">Выдан сотруднику ✔</option>
+                                    </select>
+                                    <button type="submit" class="btn-status-update">Обновить</button>
+                                </form>
+                            {% else %}
+                                <span style="color: #64748b; font-size: 13px; font-style: italic;">Заказ закрыт и получен 📦</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+                <p style="color: #64748b; text-align: center; margin: 20px 0;">Оплаченных заказов в магазине пока не зарегистрировано.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
 </body>
 </html>
