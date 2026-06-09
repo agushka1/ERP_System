@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Панель управления ERP — Администратор</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 0; color: #333; }
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; box-sizing: border-box; }
+        .card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        h2 { margin-top: 0; color: #1e293b; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
+
+        .admin-grid { display: grid; grid-template-columns: 1fr; gap: 30px; }
+        @media (min-width: 900px) { .admin-grid { grid-template-columns: 2fr 1fr; } }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px; }
+        th { background-color: #f8f9fa; color: #475569; border-bottom: 2px solid #cbd5e1; }
+
+        .admin-actions { display: flex; gap: 10px; }
+        .admin-form { background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 280px; }
+
+        .form-group { margin-bottom: 15px; display: flex; flex-direction: column; gap: 5px; }
+        label { font-size: 13px; font-weight: bold; color: #475569; }
+        input, select, textarea { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px; box-sizing: border-box; width: 100%; }
+        textarea { resize: none; }
+
+        .btn { border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold; color: white; text-align: center; }
+        .btn-bonus { background-color: #0284c7; }
+        .btn-fine { background-color: #ea580c; }
+        .btn-status { background-color: #10b981; padding: 6px 10px; font-size: 12px; }
+        .btn-status:hover { background-color: #059669; }
+        .btn-add { background-color: #10b981; width: 100%; font-size: 14px; padding: 12px; }
+
+        .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+        .status-pending { background-color: #fef3c7; color: #d97706; }
+        .status-delivered { background-color: #d1fae5; color: #065f46; }
+    </style>
+</head>
+<body>
+
+{% include "core_erp/navbar.html" %}
+
+<div class="container">
+
+    <div class="admin-grid">
+        <!-- ЛЕВАЯ КОЛОНКА: Управление сотрудниками -->
+        <div class="card">
+            <h2>Управление балансами сотрудников</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Сотрудник</th>
+                        <th>Передача</th>
+                        <th>Покупки</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for emp in all_employees %}
+                    <tr>
+                        <td>
+                            <strong>{{ emp.first_name }}</strong><br>
+                            <small style="color: #64748b;">@{{ emp.username }}</small>
+                        </td>
+                        <td style="color: #16a34a; font-weight: bold;">{{ emp.transferable_balance }}</td>
+                        <td style="color: #2563eb; font-weight: bold;">{{ emp.spendable_balance }}</td>
+                        <td>
+                            <div class="admin-actions">
+                                <form method="post" class="admin-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="employee_id" value="{{ emp.id }}">
+                                    <div style="display: flex; gap: 5px;">
+                                        <input type="number" name="amount" min="0.01" step="0.01" placeholder="Сумма" required style="width: 70px; padding: 4px;">
+                                        <select name="balance_type" required style="padding: 4px; font-size: 12px;">
+                                            <option value="transferable">Передача</option>
+                                            <option value="spendable">Покупки</option>
+                                        </select>
+                                    </div>
+                                    <textarea name="comment" rows="1" placeholder="Причина" required style="padding: 4px; font-size: 12px;"></textarea>
+                                    <div style="display: flex; gap: 5px;">
+                                        <button type="submit" name="action" value="bonus" class="btn btn-bonus" style="flex: 1; padding: 4px; font-size: 11px;">+ Премия</button>
+                                        <button type="submit" name="action" value="fine" class="btn btn-fine" style="flex: 1; padding: 4px; font-size: 11px;">- Штраф</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ПРАВАЯ КОЛОНКА: Добавление нового товара -->
+        <div class="card" style="height: fit-content;">
+            <h2>🎁 Новый мерч</h2>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="action_add_product" value="1">
+                <div class="form-group">
+                    <label for="p_name">Название товара:</label>
+                    <input type="text" id="p_name" name="name" placeholder="Например: Кружка" required>
+                </div>
+                <div class="form-group">
+                    <label for="p_price">Цена (в монетах):</label>
+                    <input type="number" id="p_price" name="price" min="0.01" step="0.01" placeholder="0.00" required>
+                </div>
+                <div class="form-group">
+                    <label for="p_stock">Количество на складе:</label>
+                    <input type="number" id="p_stock" name="stock" min="0" placeholder="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="p_image">Фотография товара:</label>
+                    <input type="file" id="p_image" name="image" accept="image/*">
+                </div>
+                <button type="submit" class="btn btn-add">Выложить в магазин</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- НОВЫЙ БЛОК СНИЗУ: Учет и ведение подсчета заказов -->
+    <div class="card" style="margin-top: 30px;">
+        <h2>📋 Учет и выдача оплаченных заказов</h2>
+        <p>Здесь выводятся все купленные сотрудниками товары. После того как вы выдадите вещь вживую, нажмите кнопку «Отметить как выдан».</p>
+
+        {% if all_orders %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID заказа</th>
+                    <th>Сотрудник</th>
+                    <th>Купленный товар</th>
+                    <th>Количество</th>
+                    <th>Стоимость</th>
+                    <th>Статус заказа</th>
+                    <th>Дата</th>
+                    <th>Действие</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in all_orders %}
+                <tr>
+                    <td><strong>#{{ order.id }}</strong></td>
+                    <td>{{ order.employee.first_name }} (<small>@{{ order.employee.username }}</small>)</td>
+                    <td><strong>{{ order.product.name }}</strong></td>
+                    <td>{{ order.quantity }} шт.</td>
+                    <td><strong>{{ order.total_price }} 🪙</strong></td>
+                    <td>
+                        {% if order.status == 'PENDING' %}
+                            <span class="status-badge status-pending">{{ order.get_status_display }}</span>
+                        {% else %}
+                            <span class="status-badge status-delivered">{{ order.get_status_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ order.created_at|date:"d.m.Y H:i" }}</td>
+                    <td>
+                        {% if order.status == 'PENDING' %}
+                            <!-- Форма переключения статуса -->
+                            <form method="post" style="margin: 0;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action_change_status" value="1">
+                                <input type="hidden" name="order_id" value="{{ order.id }}">
+                                <button type="submit" class="btn btn-status">Отметить как выдан</button>
+                            </form>
+                        {% else %}
+                            <span style="color: #64748b; font-size: 13px; font-style: italic;">Товар получен ✔</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+            <p style="color: #999; text-align: center; margin: 20px 0;">Оплаченных заказов в системе пока нет.</p>
+        {% endif %}
+    </div>
+
+</div>
+
+</body>
+</html>

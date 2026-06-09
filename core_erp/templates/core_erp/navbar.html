@@ -1,0 +1,88 @@
+<style>
+    .navbar { background-color: #1e293b; padding: 0 25px; height: 60px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); position: relative; z-index: 1000; }
+    .navbar-brand { color: white; font-size: 20px; font-weight: bold; text-decoration: none; }
+    .dropdown { position: relative; display: inline-block; }
+    .dropdown-toggle { background: none; border: none; color: white; font-size: 15px; font-weight: bold; cursor: pointer; padding: 10px 15px; border-radius: 4px; display: flex; align-items: center; gap: 6px; }
+    .dropdown-toggle:hover { background-color: #334155; }
+    .dropdown-toggle::after { content: ' ▼'; font-size: 10px; color: #94a3b8; }
+
+    .dropdown-menu { display: none; position: absolute; right: 0; top: 100%; background-color: white; min-width: 220px; box-shadow: 0 8px 16px rgba(0,0,0,0.15); border-radius: 6px; padding: 6px 0; list-style: none; margin: 5px 0 0 0; border: 1px solid #e2e8f0; z-index: 1001; }
+    .dropdown-menu.show { display: block; }
+    .dropdown-menu a, .has-submenu > span { display: block; padding: 11px 20px; text-decoration: none; color: #334155; font-size: 14px; font-weight: 500; cursor: pointer; }
+    .dropdown-menu a:hover, .has-submenu > span:hover { background-color: #f1f5f9; color: #007bff; }
+    .dropdown-divider { height: 1px; background-color: #e2e8f0; margin: 6px 0; }
+
+    /* СТИЛИ ДЛЯ ВЛОЖЕННОГО МЕНЮ АДМИНИСТРАТОРА */
+    .has-submenu { position: relative; }
+    .has-submenu > span::after { content: ' ▶'; font-size: 9px; float: right; color: #94a3b8; margin-top: 3px; }
+    .submenu { display: none; position: absolute; right: 100%; top: 0; background-color: white; min-width: 200px; box-shadow: -4px 8px 16px rgba(0,0,0,0.15); border-radius: 6px; padding: 6px 0; list-style: none; border: 1px solid #e2e8f0; margin-right: 5px; }
+    .has-submenu:hover .submenu { display: block; } /* Показываем подменю при наведении */
+</style>
+
+<nav class="navbar">
+    <a href="{% url 'dashboard' %}" class="navbar-brand">RespectSys ERP</a>
+
+    <div class="dropdown">
+        <button class="dropdown-toggle" id="profileDropdownBtn">
+            {% if user.first_name %}{{ user.first_name }}{% else %}@{{ user.username }}{% endif %}
+        </button>
+        <ul class="dropdown-menu" id="profileDropdownMenu">
+            <li><a href="{% url 'dashboard' %}">🏠 Главная страница</a></li>
+            <li><a href="{% url 'balance' %}">💰 Мой баланс и история</a></li>
+            <li><a href="{% url 'shop' %}">🛍️ Магазин мерча</a></li>
+            <li><a href="{% url 'cart' %}">🛒 Моя корзина</a></li>
+
+            <!-- ВЛОЖЕННОЕ БУРГЕР-МЕНЮ ДЛЯ АДМИНИСТРАТОРА -->
+            {% if user.role == 'ADMIN' %}
+                <div class="dropdown-divider"></div>
+                <li class="has-submenu">
+                    <span style="color: #d97706; font-weight: bold;">⚙️ Панель Управления</span>
+                    <ul class="submenu">
+                        <li><a href="{% url 'admin_add_product' %}">➕ Добавить товар</a></li>
+                        <li><a href="{% url 'admin_currency' %}">💸 Начислить средства</a></li>
+                        <li><a href="{% url 'admin_orders' %}">📦 Учет магазина</a></li>
+                    </ul>
+                </li>
+            {% endif %}
+
+            <div class="dropdown-divider"></div>
+            <li><a href="{% url 'logout' %}" style="color: #ef4444; font-weight: bold;">🚪 Выйти из системы</a></li>
+        </ul>
+    </div>
+</nav>
+
+<!-- БЛОК УВЕДОМЛЕНИЙ -->
+{% if messages %}
+    <div id="notification-container" style="position: fixed; top: 75px; right: 25px; z-index: 2000; display: flex; flex-direction: column; gap: 10px;">
+        {% for message in messages %}
+            <div class="toast-notification" style="background: {% if message.tags == 'error' %}#ef4444{% else %}#22c55e{% endif %}; color: white; padding: 15px 25px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 14px; font-weight: bold; display: flex; align-items: center; justify-content: space-between; gap: 15px; animation: slideIn 0.3s ease-out; min-width: 250px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span>🔔</span>
+                    <span>{{ message }}</span>
+                </div>
+                <button onclick="this.parentElement.remove()" style="background: none; border: none; color: white; font-weight: bold; cursor: pointer; font-size: 20px; line-height: 1; padding: 0; margin: 0;">&times;</button>
+            </div>
+        {% endfor %}
+    </div>
+    <style> @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } } </style>
+    <script>
+        setTimeout(() => {
+            const container = document.getElementById('notification-container');
+            if (container) {
+                container.style.transition = 'opacity 0.5s ease'; container.style.opacity = '0';
+                setTimeout(() => container.remove(), 500);
+            }
+        }, 5000);
+    </script>
+{% endif %}
+
+<script>
+    (function() {
+        const dropdownBtn = document.getElementById('profileDropdownBtn');
+        const dropdownMenu = document.getElementById('profileDropdownMenu');
+        if (dropdownBtn && dropdownMenu) {
+            dropdownBtn.addEventListener('click', function(e) { e.stopPropagation(); dropdownMenu.classList.toggle('show'); });
+            document.addEventListener('click', function(e) { if (!dropdownBtn.contains(e.target) && !dropdownMenu.contains(e.target)) dropdownMenu.classList.remove('show'); });
+        }
+    })();
+</script>

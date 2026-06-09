@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8"><title>Начислить средства — ERP</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 0; }
+        .container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+        .card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        h2 { margin-top: 0; color: #1e293b; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px; }
+        th { background-color: #f8f9fa; color: #475569; }
+        input, select, textarea { padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px; }
+        .btn { border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; color: white; }
+        .btn-bonus { background-color: #0284c7; }
+        .btn-fine { background-color: #ea580c; }
+    </style>
+</head>
+<body>
+    {% include "core_erp/navbar.html" %}
+    <div class="container"><div class="card">
+        <h2>💸 Управление балансами сотрудников</h2>
+        <table>
+            <thead><tr><th>Сотрудник</th><th>Передача</th><th>Покупки</th><th>Действия</th></tr></thead>
+            <tbody>
+                {% for emp in all_employees %}
+                <tr>
+                    <td><strong>{{ emp.first_name }}</strong><br><small>@{{ emp.username }}</small></td>
+                    <td style="color: #16a34a; font-weight: bold;">{{ emp.transferable_balance }}</td>
+                    <td style="color: #2563eb; font-weight: bold;">{{ emp.spendable_balance }}</td>
+                    <td>
+                        <form method="post" style="display: flex; flex-direction: column; gap: 5px; background: #f8fafc; padding: 8px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                            {% csrf_token %}
+                            <input type="hidden" name="employee_id" value="{{ emp.id }}">
+                            <div style="display: flex; gap: 5px;">
+                                <input type="number" name="amount" min="0.01" step="0.01" placeholder="Сумма" required style="width: 75px;">
+                                <select name="balance_type" required><option value="transferable">Передача</option><option value="spendable">Покупки</option></select>
+                            </div>
+                            <textarea name="comment" rows="1" placeholder="Причина" required></textarea>
+                            <div style="display: flex; gap: 5px;">
+                                <button type="submit" name="action" value="bonus" class="btn btn-bonus" style="flex: 1;">+ Премия</button>
+                                <button type="submit" name="action" value="fine" class="btn btn-fine" style="flex: 1;">- Штраф</button>
+                            </div>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div></div>
+</body>
+</html>

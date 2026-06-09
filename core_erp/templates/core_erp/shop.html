@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Магазин мерча — RespectSys ERP</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 0; color: #333; }
+        .navbar { background-color: #1e293b; padding: 0 25px; height: 60px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); position: relative; z-index: 100; }
+        .navbar-brand { color: white; font-size: 20px; font-weight: bold; text-decoration: none; }
+        .dropdown { position: relative; display: inline-block; }
+        .dropdown-toggle { background: none; border: none; color: white; font-size: 15px; font-weight: bold; cursor: pointer; padding: 10px 15px; border-radius: 4px; display: flex; align-items: center; gap: 6px; }
+        .dropdown-toggle::after { content: ' ▼'; font-size: 10px; color: #94a3b8; }
+        .dropdown-menu { display: none; position: absolute; right: 0; top: 100%; background-color: white; min-width: 200px; box-shadow: 0 8px 16px rgba(0,0,0,0.15); border-radius: 6px; padding: 6px 0; list-style: none; margin: 5px 0 0 0; border: 1px solid #e2e8f0; }
+        .dropdown-menu.show { display: block; }
+        .dropdown-menu a { display: block; padding: 11px 20px; text-decoration: none; color: #334155; font-size: 14px; font-weight: 500; }
+        .dropdown-menu a:hover { background-color: #f1f5f9; color: #007bff; }
+        .dropdown-divider { height: 1px; background-color: #e2e8f0; margin: 6px 0; }
+        .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; box-sizing: border-box; }
+        .section-title { margin-top: 10px; margin-bottom: 20px; color: #444; }
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 25px; }
+        .product-card { background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid #e2e8f0; }
+        .product-img-box { width: 100%; height: 200px; background-color: #f1f5f9; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+        .product-img { width: 100%; height: 100%; object-fit: cover; }
+        .product-no-img { color: #94a3b8; font-size: 14px; font-style: italic; }
+        .product-info { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .product-name { margin: 0 0 10px 0; font-size: 18px; color: #1e293b; }
+        .product-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .product-price { font-size: 20px; font-weight: bold; color: #007bff; }
+        .product-stock { font-size: 13px; color: #64748b; }
+        .btn-buy { background: #28a745; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold; width: 100%; transition: background 0.2s; }
+        .btn-buy:hover { background: #218838; }
+        .btn-out { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; }
+        .alert { padding: 12px; border-radius: 4px; margin-bottom: 20px; font-size: 14px; font-weight: bold; }
+        .alert-error { background: #f8d7da; color: #721c24; }
+        .alert-success { background: #d4edda; color: #155724; }
+    </style>
+</head>
+<body>
+
+<!-- Подключаем общий навбар -->
+{% include "core_erp/navbar.html" %}
+
+<div class="container">
+    <div style="background: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 25px; display: inline-block;">
+        Доступно для покупок: <strong style="color: #007bff; font-size: 18px;">{{ user.spendable_balance }} монет</strong>
+    </div>
+
+    {% if error %}
+        <div class="alert alert-error">❌ Ошибка: {{ error }}</div>
+    {% endif %}
+    {% if success %}
+        <div class="alert alert-success">✅ Успешно: {{ success }}</div>
+    {% endif %}
+
+    <h3 class="section-title">Магазин корпоративного мерча</h3>
+    <div class="product-grid">
+        {% for product in products %}
+            <div class="product-card">
+                <div class="product-img-box">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-img">
+                    {% else %}
+                        <span class="product-no-img">Нет изображения</span>
+                    {% endif %}
+                </div>
+                <div class="product-info">
+                    <h4 class="product-name">{{ product.name }}</h4>
+                    <div class="product-meta">
+                        <span class="product-price">{{ product.price }} 🪙</span>
+                        <span class="product-stock">В наличии: {{ product.stock }} шт.</span>
+                    </div>
+                    <form method="post">
+                        {% csrf_token %}
+                        <!-- Измените имя действия на action_add_to_cart -->
+                        <input type="hidden" name="action_add_to_cart" value="1">
+                        <input type="hidden" name="product_id" value="{{ product.id }}">
+
+                        {% if product.stock > 0 %}
+                            <button type="submit" class="btn-buy" style="background-color: #007bff;">Добавить в корзину</button>
+                        {% else %}
+                            <button type="button" class="btn-buy btn-out" disabled>Нет в наличии</button>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        {% empty %}
+            <p>В магазине пока нет товаров.</p>
+        {% endfor %}
+    </div>
+</div>
+
+</body>
+</html>
