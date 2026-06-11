@@ -88,12 +88,15 @@ def balance_view(request):
     if not request.user.is_authenticated:
         return redirect('login')
 
+    # Используем select_related('sender', 'receiver'), чтобы вытащить имена сотрудников одним запросом
     history = TransactionHistory.objects.filter(
         sender=request.user
     ) | TransactionHistory.objects.filter(
         receiver=request.user
     )
-    history = history.order_by('-created_at')
+
+    # Добавляем select_related и сортировку
+    history = history.select_related('sender', 'receiver').order_by('-created_at')
 
     context = {
         'user': request.user,
@@ -103,7 +106,7 @@ def balance_view(request):
 
 
 def shop_view(request):
-    """Страница магазина мерча с добавлением в корзину сессии."""
+    """Страница магазина мерча с фильтрацией и добавлением в корзину сессии."""
     if not request.user.is_authenticated:
         return redirect('login')
 
@@ -115,11 +118,30 @@ def shop_view(request):
         messages.success(request, "Товар успешно добавлен в корзину!")
         return redirect('shop')
 
-    products = Product.objects.all().order_by('name')
+    # --- Новая логика фильтрации через GET ---
+    products = Product.objects.all()
 
+    search_query = request.GET.get('search', '').strip()
+    if search_query:
+        products = products.filter(name__icontains=search_query)
+
+    in_stock_only = request.GET.get('in_stock') == 'on'
+    if in_stock_only:
+        products = products.filter(stock__gt=0)
+
+    affordable_only = request.GET.get('affordable') == 'on'
+    if affordable_only:
+        products = products.filter(price__lte=request.user.spendable_balance)
+
+    products = products.order_by('name')
+
+    # Собираем всё в контекст
     context = {
         'user': request.user,
-        'products': products
+        'products': products,
+        'search_query': search_query,
+        'in_stock_only': in_stock_only,
+        'affordable_only': affordable_only,
     }
     return render(request, 'core_erp/shop.html', context)
 

@@ -172,7 +172,7 @@ class ShopService:
                 )
             )
 
-            # Готовим реальный заказ для склада со статусом PAID
+            # Готовим заказ для склада со статусом PAID
             orders_to_create.append(
                 Order(
                     employee=employee,
@@ -198,3 +198,22 @@ class ShopService:
         # Массовое сохранение истории и заказов в базу данных
         TransactionHistory.objects.bulk_create(histories_to_create)
         Order.objects.bulk_create(orders_to_create)
+
+        @staticmethod
+        @transaction.atomic
+        def add_weekly_allowance(amount: Decimal = Decimal("500.00")) -> int:
+            """Начисление монет для передачи всем сотрудникам каждую неделю с ACID защитой."""
+            if amount <= 0:
+                raise ValueError("Сумма начисления должна быть больше нуля.")
+
+            # Блокируем строки всех сотрудников с сортировкой по ID для защиты от Deadlock
+            employees = Employee.objects.select_for_update().order_by('id')
+
+            count = 0
+            for employee in employees:
+                employee.transferable_balance += amount
+                employee.save()
+                count += 1
+
+            return count
+

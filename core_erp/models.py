@@ -137,7 +137,7 @@ class Order(models.Model):
     status = models.CharField(
         max_length=15,
         choices=Status.choices,
-        default=Status.PAID,  # ПОЧИНИЛИ: Теперь по дефолту заказ "Оплачен"
+        default=Status.PAID,  # ПОЧИНИЛ: Теперь по дефолту заказ "Оплачен"
         verbose_name="Статус заказа"
     )
     created_at = models.DateTimeField(

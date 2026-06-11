@@ -11,12 +11,30 @@
         .container { max-width: 1200px; margin: 40px auto; padding: 0 24px; box-sizing: border-box; }
         .section-title { color: #ffffff; font-size: 24px; font-weight: 700; margin-bottom: 24px; border-bottom: 1px solid #1e293b; padding-bottom: 12px; }
 
+        /* Стили для панели фильтрации */
+        .filter-card { background: linear-gradient(145deg, #111827 0%, #1f2937 100%); border: 1px solid #374151; border-radius: 16px; padding: 24px; box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7); margin-bottom: 30px; }
+        .filter-form { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; }
+        .search-input-box { flex: 1; min-width: 260px; }
+        .search-input { width: 100%; padding: 12px 16px; background: #0b0f19; border: 1px solid #2d3748; border-radius: 8px; color: #f8fafc; box-sizing: border-box; font-size: 14px; transition: border-color 0.2s; }
+        .search-input:focus { border-color: #06b6d4; outline: none; }
+
+        .filter-label { display: flex; align-items: center; gap: 10px; color: #cbd5e1; cursor: pointer; font-size: 14px; font-weight: 500; user-select: none; }
+        .filter-label input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: #06b6d4; }
+
+        .btn-filter-submit { background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 700; transition: all 0.2s; box-shadow: 0 4px 12px rgba(6, 182, 212, 0.2); }
+        .btn-filter-submit:hover { transform: scale(1.02); box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4); }
+
+        /* Та самая фиолетовая кнопка сброса с фото */
+        .btn-filter-reset-purple { background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 700; text-decoration: none; text-align: center; transition: all 0.2s; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2); }
+        .btn-filter-reset-purple:hover { transform: scale(1.02); box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4); }
+
+        .filter-actions { display: flex; gap: 12px; }
+
         /* Сетка витрины мерча */
         .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 28px; }
         .product-card { background: linear-gradient(145deg, #111827 0%, #1f2937 100%); border: 1px solid #374151; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .product-card:hover { transform: translateY(-6px); border-color: #06b6d4; box-shadow: 0 15px 30px rgba(6, 182, 212, 0.2); }
 
-        /* Увеличенные крупные фотки товаров */
         .product-img-box { width: 100%; height: 240px; background-color: #0b0f19; display: flex; justify-content: center; align-items: center; overflow: hidden; border-bottom: 1px solid #1e293b; }
         .product-img { width: 100%; height: 100%; object-fit: contain; padding: 12px; }
         .product-no-img { color: #64748b; font-size: 14px; font-style: italic; }
@@ -37,9 +55,39 @@
 {% include "core_erp/navbar.html" %}
 
 <div class="container">
-    <!-- Плашка доступного кошелька -->
+    <!-- Панель доступного кошелька -->
     <div style="background: #111827; border: 1px solid #374151; padding: 14px 20px; border-radius: 10px; margin-bottom: 30px; display: inline-block; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
         Доступный баланс для покупок: <strong style="color: #06b6d4; font-size: 19px;">{{ user.spendable_balance }} монет</strong>
+    </div>
+
+    <!-- Панель фильтрации мерча -->
+    <div class="filter-card">
+        <form method="get" action="" class="filter-form">
+            <!-- Текстовый поиск -->
+            <div class="search-input-box">
+                <input type="text" name="search" value="{{ search_query }}" placeholder="Поиск мерча по названию..." class="search-input">
+            </div>
+
+            <!-- Фильтр: Наличие -->
+            <label class="filter-label">
+                <input type="checkbox" name="in_stock" {% if in_stock_only %}checked{% endif %}>
+                Только в наличии
+            </label>
+
+            <!-- Фильтр: Доступность по балансу -->
+            <label class="filter-label">
+                <input type="checkbox" name="affordable" {% if affordable_only %}checked{% endif %}>
+                Доступно по бюджету
+            </label>
+
+            <!-- Кнопки управления -->
+            <div class="filter-actions">
+                <button type="submit" class="btn-filter-submit">Применить</button>
+                {% if search_query or in_stock_only or affordable_only %}
+                    <a href="{% url 'shop' %}" class="btn-filter-reset-purple">Сбросить</a>
+                {% endif %}
+            </div>
+        </form>
     </div>
 
     <h3 class="section-title">🛍️ Магазин корпоративного мерча</h3>
@@ -47,7 +95,7 @@
     <div class="product-grid">
         {% for product in products %}
             <div class="product-card">
-                <!-- Фотка мерча -->
+                <!-- Картинка товара -->
                 <div class="product-img-box">
                     {% if product.image %}
                         <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-img">
@@ -56,7 +104,7 @@
                     {% endif %}
                 </div>
 
-                <!-- Детали и добавление -->
+                <!-- Блок описания и покупки -->
                 <div class="product-info">
                     <h4 class="product-name text-truncate">{{ product.name }}</h4>
 
@@ -79,7 +127,7 @@
                 </div>
             </div>
         {% empty %}
-            <p style="color: #64748b; text-align: center; width: 100%; margin-top: 30px;">В магазине пока нет доступных товаров.</p>
+            <p style="color: #64748b; text-align: center; width: 100%; margin-top: 30px;">По вашему запросу товары не найдены или отсутствуют на складе.</p>
         {% endfor %}
     </div>
 </div>
